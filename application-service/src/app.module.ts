@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 
 @Module({
@@ -19,7 +20,8 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
     database: process.env.DB_NAME,
     autoLoadEntities: true,
     synchronize: true,
-})
+}),
+    ApplicationsModule
   ],
   controllers: [AppController],
   providers: [AppService],
