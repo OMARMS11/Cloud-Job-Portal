@@ -1,36 +1,34 @@
-# Nestjs specific
-./user-service/dist
-./user-service/node_modules
-./user-service/build
-./user-service/tmp
+# Ignore all node_modules in any subfolder
+**/node_modules/
 
-./application-service/dist
-./application-service/node_modules
-./application-service/build
-./application-service/tmp
+# Ignore all dist/build outputs
+**/dist/
+**/build/
 
-./job-service/dist
-./job-service/node_modules
-./job-service/build
-./job-service/tmp
+# Ignore env files anywhere
+**/.env
+**/.env.*
 
-
-
+# Coverage
+**/coverage/
 
 # Logs
-logs
 *.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
-# dotenv environment variable files
-./user-service/.env
-./application-service/.env
-./job-service/.env
+# OS
+.DS_Store
+Thumbs.db
 
-# temp directory
-.temp
-.tmp
+# IDEs
+.vscode/
+.idea/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temp
+tmp/
+temp/
+
+# ESLint cache
+.eslintcache
