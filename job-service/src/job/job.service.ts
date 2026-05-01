@@ -17,7 +17,7 @@ export class JobService {
 
     async findAll(): Promise<Job[]> {
         try {
-            return await this.jobRepository.find({ relations: ['creator'] });
+            return await this.jobRepository.find();
         } catch (error) {
             console.error('Error fetching jobs:', error);
             throw error;

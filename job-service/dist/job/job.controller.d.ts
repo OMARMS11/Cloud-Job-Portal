@@ -4,4 +4,9 @@ export declare class JobController {
     constructor(jobService: JobService);
     getJobs(): Promise<import("../entities/job.entity").Job[]>;
     getJobById(id: string): Promise<import("../entities/job.entity").Job | null>;
+    createJob(body: {
+        title: string;
+        description: string;
+        companyName: string;
+    }): Promise<import("../entities/job.entity").Job>;
 }

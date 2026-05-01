@@ -21,27 +21,36 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     register(body) {
-        this.usersService.createUser(body.email, body.password, body.role);
+        return this.usersService.createUser(body.email, body.password, body.role);
     }
     login(body) {
-        console.log('Login attempt:', body);
+        return this.usersService.findByEmail(body.email);
+    }
+    findAll() {
+        return this.usersService.findAll();
     }
 };
 exports.UsersController = UsersController;
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Post)('register'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "register", null);
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "login", null);
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findAll", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])

@@ -3,7 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './modules/users/users.module';
+import { HashingModule } from './modules/hashing/hashing.module';
 
 
 @Module({
@@ -21,7 +22,8 @@ import { UsersModule } from './users/users.module';
     autoLoadEntities: true,
     synchronize: true,
 }),
-UsersModule
+UsersModule,
+HashingModule
   ],
   controllers: [AppController],
   providers: [AppService],

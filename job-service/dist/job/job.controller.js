@@ -26,6 +26,10 @@ let JobController = class JobController {
     getJobById(id) {
         return this.jobService.findById(id);
     }
+    createJob(body) {
+        const { title, description, companyName } = body;
+        return this.jobService.createJob(title, description, companyName, new Date());
+    }
 };
 exports.JobController = JobController;
 __decorate([
@@ -41,8 +45,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], JobController.prototype, "getJobById", null);
+__decorate([
+    (0, common_1.Post)('create'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], JobController.prototype, "createJob", null);
 exports.JobController = JobController = __decorate([
-    (0, common_1.Controller)('job'),
+    (0, common_1.Controller)('jobs'),
     __metadata("design:paramtypes", [job_service_1.JobService])
 ], JobController);
 //# sourceMappingURL=job.controller.js.map

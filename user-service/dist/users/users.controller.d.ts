@@ -7,9 +7,10 @@ export declare class UsersController {
         email: string;
         password: string;
         role: UserRole;
-    }): void;
+    }): Promise<import("src/entities/user.entity").User>;
     login(body: {
         email: string;
         password: string;
-    }): void;
+    }): Promise<import("src/entities/user.entity").User | null>;
+    findAll(): Promise<import("src/entities/user.entity").User[]>;
 }
