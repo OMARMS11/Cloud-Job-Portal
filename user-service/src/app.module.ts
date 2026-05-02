@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
-import { HashingModule } from './modules/hashing/hashing.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 
 @Module({
@@ -23,7 +23,7 @@ import { HashingModule } from './modules/hashing/hashing.module';
     synchronize: true,
 }),
 UsersModule,
-HashingModule
+AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

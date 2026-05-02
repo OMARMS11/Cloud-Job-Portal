@@ -1,21 +1,8 @@
 # Nestjs specific
-./user-service/dist
-./user-service/node_modules
-./user-service/build
-./user-service/tmp
-
-./application-service/dist
-./application-service/node_modules
-./application-service/build
-./application-service/tmp
-
-./job-service/dist
-./job-service/node_modules
-./job-service/build
-./job-service/tmp
-
-
-
+**/dist
+**/node_modules
+**/build
+**/tmp
 
 # Logs
 logs
@@ -27,9 +14,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # dotenv environment variable files
-./user-service/.env
-./application-service/.env
-./job-service/.env
+**/.env
 
 # temp directory
 .temp
