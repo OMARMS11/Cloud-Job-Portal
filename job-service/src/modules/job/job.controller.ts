@@ -8,10 +8,13 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JobsService } from './job.service';
-import { CreateJobDto } from '../dto/create-job.dto';
+import { CreateJobDto } from './dto/create-job.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
+import { find } from 'rxjs';
 
 @Controller('jobs')
 export class JobsController {
@@ -31,12 +34,17 @@ export class JobsController {
       dto.title,
       dto.description,
       dto.companyName,
-      user.sub
+      user.sub,
     );
   }
 
   @Get()
   findAll() {
     return this.jobsService.findAll();
+  }
+
+  @Get(':id')
+  findById(@Param('id', ParseIntPipe) id: number) {
+    return this.jobsService.findById(id);
   }
 }
