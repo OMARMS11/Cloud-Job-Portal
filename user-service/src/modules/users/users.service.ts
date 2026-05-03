@@ -26,9 +26,15 @@ export class UsersService {
     }
   }
 
-    async findByEmail(email: string): Promise<User | null> {
+    async findByEmail(email: string, includePassword = false): Promise<User | null> {
         try{
-            const user = await this.userRepository.findOne({ where: { email } });
+            const query = this.userRepository.createQueryBuilder('user').where('user.email = :email', { email });
+
+            if (includePassword) {
+                query.addSelect('user.password');
+            }
+
+            const user = await query.getOne();
             return user;
         }
         catch(error){

@@ -26,14 +26,18 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const user = await this.usersService.createUser(dto.email, hashedPassword, dto.role);
+    const user = await this.usersService.createUser(
+      dto.email,
+      hashedPassword,
+      dto.role,
+    );
 
     return this.generateToken(user);
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user) {
+    const user = await this.usersService.findByEmail(dto.email, true);
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
