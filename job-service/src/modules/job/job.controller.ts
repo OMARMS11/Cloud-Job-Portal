@@ -10,11 +10,13 @@ import {
   ForbiddenException,
   Param,
   ParseIntPipe,
+  Patch,
 } from '@nestjs/common';
 import { JobsService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { find } from 'rxjs';
+import { UpdateJobDto } from './dto/update-job.dto';
 
 @Controller('jobs')
 export class JobsController {
@@ -46,5 +48,22 @@ export class JobsController {
   @Get(':id')
   findById(@Param('id', ParseIntPipe) id: number) {
     return this.jobsService.findById(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: Partial<UpdateJobDto>,
+    @Request() req,
+  ) {
+    const user = req.user;  
+    const job = await this.jobsService.findById(id);
+
+    // 🔥 Ownership Check
+    if (job.createdBy !== user.sub) {
+      throw new ForbiddenException('You can only update your own jobs');
+    }
+    return this.jobsService.update(id, dto);
   }
 }

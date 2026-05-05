@@ -54,4 +54,34 @@ export class UsersService {
     }
   }
 
+  async updateUser(id: string, updateData: Partial<User>): Promise<User> {
+    try{
+        await this.userRepository.update(id, updateData);
+        const updatedUser = await this.userRepository.findOne({ where: { id } });
+
+        if (!updatedUser) {
+            throw new Error(`User with id ${id} not found`);
+        }
+
+        return updatedUser;
+    }
+    catch(error){
+        console.error('Error updating user:', error);
+        throw error;
+    }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    try{
+        const result = await this.userRepository.delete(id);
+        if (result.affected === 0) {
+            throw new Error(`User with id ${id} not found`);
+        }
+    }
+    catch(error){
+        console.error('Error deleting user:', error);
+        throw error;
+    }
+  }
+
 }
