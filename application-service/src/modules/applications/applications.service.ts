@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Application } from './entities/application.entity';
+import { Application, ApplicationStatus } from './entities/application.entity';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
@@ -61,4 +61,39 @@ export class ApplicationsService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async delete(id: number) {
+    const application = await this.repo.findOne({ where: { id } });
+    if (!application) {
+      throw new BadRequestException('Application not found');
+    }
+    return this.repo.remove(application);
+  }
+
+  async updateStatus(id: number, status: ApplicationStatus, user: any) {
+    
+    try{
+      const application = await this.repo.findOne({ where: { id } }); 
+      if(!application){
+        throw new BadRequestException('Application not found');
+      }
+      // 🔥 Only employers can update status
+      if (user.role !== 'EMPLOYER') {
+        throw new ForbiddenException('Only employers can update application status');
+      }
+      if (!Object.values(ApplicationStatus).includes(status)) {
+        throw new BadRequestException('Invalid status value');
+      }
+
+      application.status = status;
+      return this.repo.save(application);
+
+    }
+   catch(error){
+    console.error('Error updating application status:', error);
+    throw error;
+    }
+  }
+
+ 
 }

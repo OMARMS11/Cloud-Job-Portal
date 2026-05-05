@@ -9,12 +9,14 @@ import {
   Request,
   Patch,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { JwtAuthGuard } from './gaurds/jwt.gaurd';
 import { UsersService } from '../users/users.service';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,8 +39,8 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('me')
-  updateProfile(@Request() req, @Body() updateData: Partial<RegisterDto>) {
+  @Put('me')
+  updateProfile(@Request() req, @Body() updateData: Partial<UpdateUserDto>) {
     return this.usersService.updateUser(req.user.id, updateData);
   }
 

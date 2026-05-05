@@ -7,5 +7,9 @@ import { JwtAuthGuard } from '../auth/gaurds/jwt.gaurd';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
+  
 }
