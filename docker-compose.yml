@@ -8,15 +8,19 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
 
   user-service:
     build: ./user-service
     container_name: user-service
+    restart: always
     ports:
       - "3001:3000"
     depends_on:
@@ -28,10 +32,14 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: user_db
       SECRET_KEY: SECRET_KEY
+      PORT: 3000
+    networks:
+      - app-network
 
   job-service:
     build: ./job-service
     container_name: job-service
+    restart: always
     ports:
       - "3002:3000"
     depends_on:
@@ -43,10 +51,14 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: job_db
       SECRET_KEY: SECRET_KEY
+      PORT: 3000
+    networks:
+      - app-network
 
   application-service:
     build: ./application-service
     container_name: application-service
+    restart: always
     ports:
       - "3003:3000"
     depends_on:
@@ -58,6 +70,13 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: application_db
       SECRET_KEY: SECRET_KEY
+      PORT: 3000
+      JOB_SERVICE_HOST: job-service
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
