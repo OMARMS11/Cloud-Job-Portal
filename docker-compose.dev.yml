@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: job-portal-db-dev
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service-dev
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: user_db
+      SECRET_KEY: dev-secret-key
+      PORT: 3000
+      NODE_ENV: development
+    volumes:
+      - ./user-service/src:/app/src
+    networks:
+      - app-network-dev
+
+  job-service:
+    build:
+      context: ./job-service
+      dockerfile: Dockerfile
+    container_name: job-service-dev
+    restart: always
+    ports:
+      - "3002:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: job_db
+      SECRET_KEY: dev-secret-key
+      PORT: 3000
+      NODE_ENV: development
+    volumes:
+      - ./job-service/src:/app/src
+    networks:
+      - app-network-dev
+
+  application-service:
+    build:
+      context: ./application-service
+      dockerfile: Dockerfile
+    container_name: application-service-dev
+    restart: always
+    ports:
+      - "3003:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: application_db
+      SECRET_KEY: dev-secret-key
+      PORT: 3000
+      JOB_SERVICE_HOST: job-service:3000
+      NODE_ENV: development
+    volumes:
+      - ./application-service/src:/app/src
+    networks:
+      - app-network-dev
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  app-network-dev:

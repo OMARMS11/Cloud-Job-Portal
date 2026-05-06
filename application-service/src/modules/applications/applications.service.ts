@@ -28,7 +28,7 @@ export class ApplicationsService {
     // 🔥 Validate job exists (call Job Service)
     try {
       await firstValueFrom(
-        this.httpService.get(`http://${process.env.JOB_SERVICE_HOST || 'localhost'}:3000/jobs/${jobId}`),
+        this.httpService.get(`http://${process.env.JOB_SERVICE_HOST || 'localhost:3000'}/jobs/${jobId}`),
       );
     } catch (error: any) {
       const errorMessage =

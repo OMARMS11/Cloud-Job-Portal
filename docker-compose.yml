@@ -71,7 +71,7 @@ services:
       DB_NAME: application_db
       SECRET_KEY: SECRET_KEY
       PORT: 3000
-      JOB_SERVICE_HOST: job-service
+      JOB_SERVICE_HOST: job-service:3000
     networks:
       - app-network
 
