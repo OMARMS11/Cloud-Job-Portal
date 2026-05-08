@@ -1,50 +1,176 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { userAPI } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import styles from './profile.module.css';
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user.fullName,
+        email: user.email,
+      });
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSaving(true);
+
+    try {
+      await userAPI.updateProfile(formData);
+      alert('Profile updated successfully!');
+      setIsEditing(false);
+      window.location.reload();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-40 left-40 w-64 h-64 bg-secondary/20 rounded-full blur-3xl -z-10 animate-float" />
-      
-      <div className="glass-panel p-12 max-w-2xl w-full z-10 flex flex-col">
-        <div className="flex justify-between items-center mb-10 border-b border-glass-border pb-6">
-          <h1 className="text-4xl font-bold gradient-text">Your Profile</h1>
-          <Link href="/" className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-full font-medium transition-all hover:-translate-y-1">
-            Back to Home
+    <ProtectedRoute>
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <Link href="/jobs" className={styles.backLink}>
+            ← Back to Jobs
           </Link>
-        </div>
-        
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-6 mb-4">
-            <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary/50 text-3xl font-bold text-primary">
-              JD
+
+          <div className={styles.profileCard}>
+            <div className={styles.profileHeader}>
+              <div className={styles.avatar}>
+                {user?.fullName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h1>{user?.fullName}</h1>
+                <p className={styles.role}>
+                  {user?.role === 'EMPLOYER' ? 'Employer' : 'Job Seeker'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">John Doe</h2>
-              <p className="text-foreground/60">Software Developer</p>
-            </div>
+
+            {error && <div className={styles.error}>{error}</div>}
+
+            {isLoading ? (
+              <div className={styles.loading}>Loading profile...</div>
+            ) : isEditing ? (
+              <form onSubmit={handleSave}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="fullName">Full Name</label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className={styles.buttons}>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className={styles.saveBtn}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setFormData({
+                        fullName: user?.fullName || '',
+                        email: user?.email || '',
+                      });
+                    }}
+                    className={styles.cancelBtn}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className={styles.profileInfo}>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Email:</span>
+                    <span>{user?.email}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Role:</span>
+                    <span>{user?.role === 'EMPLOYER' ? 'Employer' : 'Job Seeker'}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Member Since:</span>
+                    <span>
+                      {user?.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.buttons}>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className={styles.editBtn}
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className={styles.logoutBtn}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-          
-          <div className="space-y-4 text-sm text-foreground/80 bg-white/5 p-6 rounded-xl border border-white/10">
-            <div className="flex justify-between border-b border-white/10 pb-3">
-              <span className="font-semibold text-white">Email:</span>
-              <span>john.doe@example.com</span>
-            </div>
-            <div className="flex justify-between border-b border-white/10 pb-3">
-              <span className="font-semibold text-white">Location:</span>
-              <span>San Francisco, CA</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold text-white">Experience:</span>
-              <span>5 Years</span>
-            </div>
-          </div>
-          
-          <button className="mt-4 px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] w-full text-center">
-            Edit Profile
-          </button>
         </div>
-      </div>
-    </main>
+      </main>
+    </ProtectedRoute>
   );
 }

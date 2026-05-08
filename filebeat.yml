@@ -1,0 +1,11 @@
+filebeat:
+  image: docker.elastic.co/beats/filebeat:8.5.0
+  container_name: filebeat
+  restart: always
+  command: filebeat -e --strict.perms=false
+  volumes:
+    - //var/lib/docker/containers:/var/lib/docker/containers:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+  depends_on:
+    - elasticsearch

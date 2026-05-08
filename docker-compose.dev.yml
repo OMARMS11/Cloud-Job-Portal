@@ -1,105 +1,119 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
-    container_name: job-portal-db-dev
+    container_name: job-portal-db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d
-    networks:
-      - app-network-dev
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    container_name: user-service-dev
+    build: ./user-service
+    container_name: user-service
     restart: always
     ports:
       - "3001:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_NAME: user_db
-      SECRET_KEY: dev-secret-key
-      PORT: 3000
-      NODE_ENV: development
-    volumes:
-      - ./user-service/src:/app/src
-    networks:
-      - app-network-dev
+      SECRET_KEY: SECRET_KEY
 
   job-service:
-    build:
-      context: ./job-service
-      dockerfile: Dockerfile
-    container_name: job-service-dev
+    build: ./job-service
+    container_name: job-service
     restart: always
     ports:
       - "3002:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_NAME: job_db
-      SECRET_KEY: dev-secret-key
-      PORT: 3000
-      NODE_ENV: development
-    volumes:
-      - ./job-service/src:/app/src
-    networks:
-      - app-network-dev
+      SECRET_KEY: SECRET_KEY
 
   application-service:
-    build:
-      context: ./application-service
-      dockerfile: Dockerfile
-    container_name: application-service-dev
+    build: ./application-service
+    container_name: application-service
     restart: always
     ports:
       - "3003:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_NAME: application_db
-      SECRET_KEY: dev-secret-key
-      PORT: 3000
-      JOB_SERVICE_HOST: job-service:3000
-      NODE_ENV: development
-    volumes:
-      - ./application-service/src:/app/src
-    networks:
-      - app-network-dev
+      SECRET_KEY: SECRET_KEY
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://user-service:3000
+        NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
+        NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - job-service
+      - application-service
+    environment:
+      NEXT_PUBLIC_API_URL: http://user-service:3000
+      NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
+      NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
+
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+  #   container_name: elasticsearch
+  #   restart: always
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_JAVA_OPTS=-Xms512m -Xmx512m
+  #     - xpack.security.enabled=false
+  #   ports:
+  #     - "9200:9200"
+  #   volumes:
+  #     - es_data:/usr/share/elasticsearch/data
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.5.0
+  #   container_name: kibana
+  #   restart: always
+  #   ports:
+  #     - "5601:5601"
+  #   depends_on:
+  #     - elasticsearch
+
+  # filebeat:
+  #   image: docker.elastic.co/beats/filebeat:8.5.0
+  #   container_name: filebeat
+  #   user: root
+  #   restart: always
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+  #   depends_on:
+  #     - elasticsearch
 
 volumes:
-  postgres_data_dev:
-
-networks:
-  app-network-dev:
+  postgres_data:
+  es_data:

@@ -92,6 +92,26 @@ services:
     networks:
       - app-network-test
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend-test
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    depends_on:
+      - user-service
+      - job-service
+      - application-service
+    environment:
+      NEXT_PUBLIC_API_URL: http://user-service:3000
+      NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
+      NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
+      NODE_ENV: test
+    networks:
+      - app-network-test
+
 volumes:
   postgres_data_test:
 
