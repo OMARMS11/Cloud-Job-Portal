@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   postgres:
@@ -72,6 +71,19 @@ services:
       SECRET_KEY: SECRET_KEY
       PORT: 3000
       JOB_SERVICE_HOST: job-service:3000
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "3005:3000"
+    depends_on:
+      - user-service
+      - job-service
+      - application-service
     networks:
       - app-network
 

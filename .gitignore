@@ -19,3 +19,7 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+# Frontend specific
+.next
+coverage
