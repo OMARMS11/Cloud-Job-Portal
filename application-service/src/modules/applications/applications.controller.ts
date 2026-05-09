@@ -9,11 +9,12 @@ import {
   Request,
   Delete,
   Patch,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
-import { App } from 'supertest/types';
 import { ApplicationStatus } from './entities/application.entity';
 
 @Controller('applications')
@@ -34,14 +35,25 @@ export class ApplicationsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id/delete')
-  delete(@Request() req, @Body('id') id: number) {
+  delete(@Param('id', ParseIntPipe) id: number) {
     return this.applicationsService.delete(id);
   }
+
+  // for the Employer
   @UseGuards(JwtAuthGuard)
   @Patch(':id/updateStatus')
-  updateStatus(@Request() req, @Body('id') id: number, @Body('status') status: ApplicationStatus) {
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: ApplicationStatus,
+    @Request() req,
+  ) {
     return this.applicationsService.updateStatus(id, status, req.user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('employer')
+  getEmployerApplications(@Request() req) {
+    return this.applicationsService.findApplicationsForEmployer(req.user.sub);
+  }
 
 }

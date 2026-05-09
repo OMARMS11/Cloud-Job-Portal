@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // payload contains the decrypted JWT (e.g., sub, email)
-    return { id: payload.sub, email: payload.email };
+    // payload contains the decrypted JWT (e.g., sub, email, role, fullName)
+    return payload;
   }
 }

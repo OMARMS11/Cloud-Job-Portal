@@ -10,7 +10,7 @@ import styles from './profile.module.css';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -21,14 +21,23 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        fullName: user.fullName,
-        email: user.email,
-      });
-      setIsLoading(false);
+    console.log('Auth loading:', authLoading);
+    console.log('User data:', user);
+    
+    if (!authLoading) {
+      if (user) {
+        setFormData({
+          fullName: user.fullName || '',
+          email: user.email || '',
+        });
+        setIsLoading(false);
+      } else {
+        // No user, redirect to login
+        console.log('No user found, redirecting to login');
+        router.push('/auth/login');
+      }
     }
-  }, [user]);
+  }, [user, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,11 +50,14 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
+      console.log('Updating profile with:', formData);
       await userAPI.updateProfile(formData);
       alert('Profile updated successfully!');
       setIsEditing(false);
+      // Optionally refresh user data
       window.location.reload();
     } catch (err: any) {
+      console.error('Update error:', err);
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
@@ -56,6 +68,39 @@ export default function ProfilePage() {
     logout();
     router.push('/');
   };
+
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <div className={styles.profileCard}>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              Loading profile...
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Show error if no user
+  if (!user) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <div className={styles.profileCard}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>
+              Error: Unable to load user profile. Please try logging in again.
+            </div>
+            <button onClick={() => router.push('/auth/login')}>
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <ProtectedRoute>
@@ -68,10 +113,10 @@ export default function ProfilePage() {
           <div className={styles.profileCard}>
             <div className={styles.profileHeader}>
               <div className={styles.avatar}>
-                {user?.fullName.charAt(0).toUpperCase()}
+                {user?.fullName?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
-                <h1>{user?.fullName}</h1>
+                <h1>{user?.fullName || 'User'}</h1>
                 <p className={styles.role}>
                   {user?.role === 'EMPLOYER' ? 'Employer' : 'Job Seeker'}
                 </p>
@@ -80,9 +125,7 @@ export default function ProfilePage() {
 
             {error && <div className={styles.error}>{error}</div>}
 
-            {isLoading ? (
-              <div className={styles.loading}>Loading profile...</div>
-            ) : isEditing ? (
+            {isEditing ? (
               <form onSubmit={handleSave}>
                 <div className={styles.formGroup}>
                   <label htmlFor="fullName">Full Name</label>

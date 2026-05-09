@@ -11,6 +11,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { JobsService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -41,8 +42,8 @@ export class JobsController {
   }
 
   @Get()
-  findAll() {
-    return this.jobsService.findAll();
+  findAll(@Query('employerId') employerId?: string) {
+    return this.jobsService.findAll(employerId);
   }
 
   @Get(':id')

@@ -84,6 +84,7 @@ export const applicationAPI = {
   submitApplication: (data: { jobId: string; userId: string; coverLetter?: string }) =>
     appServiceApi.post('/applications', data),
   getMyApplications: () => appServiceApi.get('/applications/me'),
+  getEmployerApplications: () => appServiceApi.get('/applications/employer'),
   getApplicationById: (id: string) => appServiceApi.get(`/applications/${id}`),
   updateApplicationStatus: (id: string, status: string) =>
     appServiceApi.patch(`/applications/${id}/updateStatus`, { status }),

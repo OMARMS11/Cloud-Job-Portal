@@ -11,8 +11,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-    async createUser(email: string, password: string, role: UserRole): Promise<User> {
-    const user = this.userRepository.create({ email, password, role });
+    async createUser(email: string, password: string, role: UserRole, fullName?: string): Promise<User> {
+    const user = this.userRepository.create({ email, password, role, fullName });
 
     return this.userRepository.save(user);
   }
