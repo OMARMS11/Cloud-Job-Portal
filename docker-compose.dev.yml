@@ -80,39 +80,40 @@ services:
       NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
       NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
 
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
-  #   container_name: elasticsearch
-  #   restart: always
-  #   environment:
-  #     - discovery.type=single-node
-  #     - ES_JAVA_OPTS=-Xms512m -Xmx512m
-  #     - xpack.security.enabled=false
-  #   ports:
-  #     - "9200:9200"
-  #   volumes:
-  #     - es_data:/usr/share/elasticsearch/data
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
 
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:8.5.0
-  #   container_name: kibana
-  #   restart: always
-  #   ports:
-  #     - "5601:5601"
-  #   depends_on:
-  #     - elasticsearch
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    container_name: kibana
+    restart: always
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
 
-  # filebeat:
-  #   image: docker.elastic.co/beats/filebeat:8.5.0
-  #   container_name: filebeat
-  #   user: root
-  #   restart: always
-  #   volumes:
-  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
-  #   depends_on:
-  #     - elasticsearch
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.5.0
+    container_name: filebeat
+    user: root
+    restart: always
+    command: filebeat -e -strict.perms=false  
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - elasticsearch
 
 volumes:
   postgres_data:

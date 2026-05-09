@@ -1,11 +1,33 @@
-filebeat:
-  image: docker.elastic.co/beats/filebeat:8.5.0
-  container_name: filebeat
-  restart: always
-  command: filebeat -e --strict.perms=false
-  volumes:
-    - //var/lib/docker/containers:/var/lib/docker/containers:ro
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-  depends_on:
-    - elasticsearch
+# filebeat.yml
+filebeat.inputs:
+- type: container
+  enabled: true
+  paths:
+    - /var/lib/docker/containers/*/*.log
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message
+
+# Output to Elasticsearch
+output.elasticsearch:
+  hosts: ['elasticsearch:9200']
+  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+# Add these template settings to fix the error
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+
+# Processors to add container metadata
+processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata: ~
+
+# Kibana setup
+setup.kibana:
+  host: 'kibana:5601'
+
+# Disable ILM for simpler setup (optional)
+setup.ilm.enabled: false
+
+logging.level: info
