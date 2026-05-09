@@ -28,7 +28,10 @@ export class JobsService {
     return this.repo.save(job);
   }
 
-  findAll() {
+  findAll(createdBy?: string) {
+    if (createdBy) {
+      return this.repo.find({ where: { createdBy }, order: { createdAt: 'DESC' } });
+    }
     return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 

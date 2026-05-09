@@ -10,11 +10,12 @@ import styles from './applications.module.css';
 interface Application {
   id: string;
   jobId: string;
-  jobTitle: string;
-  company: string;
+  jobTitle?: string;
+  company?: string;
   status: 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
   coverLetter?: string;
-  appliedAt: string;
+  appliedAt?: string;
+  createdAt?: string;
 }
 
 export default function ApplicationsPage() {
@@ -120,7 +121,7 @@ export default function ApplicationsPage() {
 
                   <div className={styles.appFooter}>
                     <span className={styles.date}>
-                      Applied {new Date(app.appliedAt).toLocaleDateString()}
+                      Applied {new Date(app.appliedAt || app.createdAt || '').toLocaleDateString()}
                     </span>
                     <button
                       onClick={() => handleWithdraw(app.id)}

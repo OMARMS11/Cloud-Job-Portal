@@ -58,13 +58,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     try {
       const response = await userAPI.login({ email, password });
-      const { accessToken, user: userData } = response.data;
-      
+      const accessToken = response.data.accessToken || response.data.access_token;
+      const userData = response.data.user || response.data.userData;
+
+      if (!accessToken) {
+        throw new Error('Login response missing access token');
+      }
+
       localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+
       setToken(accessToken);
-      setUser(userData);
+      if (userData) {
+        setUser(userData);
+      }
     } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -75,13 +84,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (email: string, password: string, fullName: string, role: string) => {
     try {
       const response = await userAPI.register({ email, password, fullName, role });
-      const { accessToken, user: userData } = response.data;
-      
+      const accessToken = response.data.accessToken || response.data.access_token;
+      const userData = response.data.user || response.data.userData;
+
+      if (!accessToken) {
+        throw new Error('Registration response missing access token');
+      }
+
       localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+
       setToken(accessToken);
-      setUser(userData);
+      if (userData) {
+        setUser(userData);
+      }
     } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

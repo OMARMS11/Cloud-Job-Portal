@@ -16,7 +16,7 @@ export default function CreateJobPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    company: '',
+    companyName: '',
     location: '',
     salary: '',
   });
@@ -75,8 +75,8 @@ export default function CreateJobPage() {
                 <input
                   id="company"
                   type="text"
-                  name="company"
-                  value={formData.company}
+                  name="companyName"
+                  value={formData.companyName}
                   onChange={handleChange}
                   placeholder="e.g., TechCorp Inc."
                   required

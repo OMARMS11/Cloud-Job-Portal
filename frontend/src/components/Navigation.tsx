@@ -33,7 +33,7 @@ export default function Navigation() {
               {user?.role === 'EMPLOYER' && (
                 <>
                   <Link href="/jobs/create">Post Job</Link>
-                  <Link href="/employer/applications">Applications</Link>
+                  <Link href="/employer">Dashboard</Link>
                 </>
               )}
               {user?.role === 'JOB_SEEKER' && (

@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Application, ApplicationStatus } from './entities/application.entity';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -62,6 +62,27 @@ export class ApplicationsService {
     });
   }
 
+  async findApplicationsForEmployer(employerId: string) {
+    const jobsResponse = await firstValueFrom(
+      this.httpService.get(
+        `http://${process.env.JOB_SERVICE_HOST || 'localhost:3000'}/jobs`,
+        { params: { employerId } },
+      ),
+    );
+
+    const jobs = jobsResponse.data || [];
+    const jobIds = jobs.map((job: any) => job.id).filter(Boolean);
+
+    if (jobIds.length === 0) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: { jobId: In(jobIds) },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async delete(id: number) {
     const application = await this.repo.findOne({ where: { id } });
     if (!application) {
@@ -70,6 +91,9 @@ export class ApplicationsService {
     return this.repo.remove(application);
   }
 
+
+
+  
   async updateStatus(id: number, status: ApplicationStatus, user: any) {
     
     try{

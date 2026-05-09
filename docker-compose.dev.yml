@@ -59,6 +59,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: application_db
       SECRET_KEY: SECRET_KEY
+      JOB_SERVICE_HOST: job-service:3000
 
   frontend:
     build:

@@ -30,6 +30,7 @@ export class AuthService {
       dto.email,
       hashedPassword,
       dto.role,
+      dto.fullName,
     );
 
     return this.generateToken(user);
@@ -54,10 +55,18 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      fullName: user.fullName,
     };
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        fullName: user.fullName,
+        createdAt: user.createdAt,
+      },
     };
   }
 }

@@ -43,7 +43,25 @@ export default function RegisterPage() {
 
     try {
       await register(formData.email, formData.password, formData.fullName, formData.role);
-      router.push('/');
+
+      const userStr = localStorage.getItem('user');
+      if(userStr)
+      {
+          const userData = JSON.parse(userStr);
+          if(userData.role === 'JOB_SEEKER')
+          {
+            router.push('/profile');
+          }
+          else if(userData.role ==='EMPLOYER')
+          {
+            router.push('/employer')
+          }
+          else
+          {
+            router.push('/')
+          }
+
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

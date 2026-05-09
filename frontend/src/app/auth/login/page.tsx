@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import styles from '../auth.module.css';
+import { parse } from 'path';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,9 +22,20 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/');
+
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        if (userData.role === 'EMPLOYER') {
+          router.push('/employer');
+        } else {
+          router.push('/profile');
+        }
+      } else {
+        router.push('/profile');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message );
     } finally {
       setIsLoading(false);
     }

@@ -10,13 +10,14 @@ import styles from '../applications/applications.module.css';
 interface JobApplication {
   id: string;
   jobId: string;
-  jobTitle: string;
+  jobTitle?: string;
   userId: string;
-  userName: string;
-  userEmail: string;
+  userName?: string;
+  userEmail?: string;
   status: 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
   coverLetter?: string;
-  appliedAt: string;
+  appliedAt?: string;
+  createdAt?: string;
 }
 
 export default function EmployerApplicationsPage() {
@@ -27,13 +28,9 @@ export default function EmployerApplicationsPage() {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    // Note: This endpoint would need to be created in the backend
-    // For now, we're using the getMyApplications as a placeholder
-    // In production, create a separate endpoint for employers to get applications for their jobs
     const fetchApplications = async () => {
       try {
-        // This is a placeholder - the actual implementation would get applications for employer's jobs
-        const response = await applicationAPI.getMyApplications();
+        const response = await applicationAPI.getEmployerApplications();
         setApplications(response.data);
       } catch (err: any) {
         setError('Failed to fetch applications');
@@ -135,8 +132,10 @@ export default function EmployerApplicationsPage() {
                     <div key={app.id} className={styles.applicationCard}>
                       <div className={styles.appHeader}>
                         <div>
-                          <h3>{app.jobTitle}</h3>
-                          <p className={styles.company}>{app.userName} ({app.userEmail})</p>
+                          <h3>{app.jobTitle || `Job #${app.jobId}`}</h3>
+                          <p className={styles.company}>
+                            {app.userName || app.userId} {app.userEmail ? `(${app.userEmail})` : ''}
+                          </p>
                         </div>
                         <span className={`${styles.status} ${getStatusColor(app.status)}`}>
                           {app.status}
@@ -152,7 +151,7 @@ export default function EmployerApplicationsPage() {
 
                       <div className={styles.appFooter}>
                         <span className={styles.date}>
-                          Applied {new Date(app.appliedAt).toLocaleDateString()}
+                          Applied {new Date(app.appliedAt || app.createdAt || '').toLocaleDateString()}
                         </span>
                         <select
                           value={app.status}

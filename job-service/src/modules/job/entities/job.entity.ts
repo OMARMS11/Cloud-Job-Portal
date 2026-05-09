@@ -18,7 +18,7 @@ export class Job {
   @Column('text')
   description!: string;
 
-  @Column()
+  @Column({nullable :false})
   companyName!: string;
 
   @Column()

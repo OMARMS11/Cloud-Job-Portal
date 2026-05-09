@@ -13,6 +13,9 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
+  @Column({ nullable: true })
+  fullName?: string;
+
   @Column({ select: false }) // Hides password by default in queries
   password!: string;
 
