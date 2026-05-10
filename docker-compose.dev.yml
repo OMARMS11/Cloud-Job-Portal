@@ -108,7 +108,7 @@ services:
     container_name: filebeat
     user: root
     restart: always
-    command: filebeat -e -strict.perms=false  
+    command: filebeat -e -strict.perms=false
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -1,138 +1,124 @@
-version: '3.8'
+version: "3.9"
 
 services:
   postgres:
     image: postgres:15
-    container_name: job-portal-db-prod
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
+    env_file:
+      - .env
     volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-network-prod
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    security_opt:
-      - no-new-privileges:true
+      - backend
 
   user-service:
     build:
       context: ./user-service
-      dockerfile: Dockerfile
-    container_name: user-service-prod
+      dockerfile: Dockerfile.prod
     restart: always
-    ports:
-      - "3001:3000"
+    env_file:
+      - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: user_db
-      SECRET_KEY: ${USER_SERVICE_SECRET_KEY}
-      PORT: 3000
-      NODE_ENV: production
+      - postgres
     networks:
-      - app-network-prod
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
+      - backend
 
   job-service:
     build:
       context: ./job-service
-      dockerfile: Dockerfile
-    container_name: job-service-prod
+      dockerfile: Dockerfile.prod
     restart: always
-    ports:
-      - "3002:3000"
+    env_file:
+      - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: job_db
-      SECRET_KEY: ${JOB_SERVICE_SECRET_KEY}
-      PORT: 3000
-      NODE_ENV: production
+      - postgres
+      - elasticsearch
     networks:
-      - app-network-prod
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
+      - backend
 
   application-service:
     build:
       context: ./application-service
-      dockerfile: Dockerfile
-    container_name: application-service-prod
+      dockerfile: Dockerfile.prod
     restart: always
-    ports:
-      - "3003:3000"
+    env_file:
+      - .env
     depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: application_db
-      SECRET_KEY: ${APP_SERVICE_SECRET_KEY}
-      PORT: 3000
-      JOB_SERVICE_HOST: job-service:3000
-      NODE_ENV: production
+      - postgres
     networks:
-      - app-network-prod
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
+      - backend
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend-prod
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: /api/users
+        NEXT_PUBLIC_JOB_SERVICE_URL: /api/jobs
+        NEXT_PUBLIC_APP_SERVICE_URL: /api/applications
     restart: always
-    ports:
-      - "3000:3000"
     depends_on:
       - user-service
       - job-service
       - application-service
-    environment:
-      NEXT_PUBLIC_API_URL: http://user-service:3000
-      NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
-      NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
-      NODE_ENV: production
     networks:
-      - app-network-prod
-    security_opt:
-      - no-new-privileges:true
+      - frontend
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - user-service
+      - job-service
+      - application-service
+    networks:
+      - frontend
+      - backend
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - backend
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    restart: always
+    depends_on:
+      - elasticsearch
+    networks:
+      - backend
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.5.0
+    user: root
+    restart: always
+    command: filebeat -e -strict.perms=false
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - elasticsearch
+    networks:
+      - backend
 
 volumes:
-  postgres_data_prod:
+  postgres_data:
+  es_data:
 
 networks:
-  app-network-prod:
+  frontend:
+  backend:

@@ -1,119 +1,60 @@
-version: '3.8'
+version: "3.9"
 
 services:
   postgres:
     image: postgres:15
-    container_name: job-portal-db-test
-    restart: unless-stopped
+    container_name: job-portal-test-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: test-password
-      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
-    volumes:
-      - postgres_data_test:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
-    networks:
-      - app-network-test
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   user-service:
     build:
       context: ./user-service
-      dockerfile: Dockerfile
+      target: test
     container_name: user-service-test
-    restart: unless-stopped
-    ports:
-      - "3011:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
+      NODE_ENV: test
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
-      DB_PASSWORD: test-password
-      DB_NAME: user_db
-      SECRET_KEY: test-secret-key
-      PORT: 3000
-      NODE_ENV: test
-    networks:
-      - app-network-test
+      DB_PASSWORD: postgres
+      DB_NAME: user_test_db
+      SECRET_KEY: TEST_SECRET
 
   job-service:
     build:
       context: ./job-service
-      dockerfile: Dockerfile
+      target: test
     container_name: job-service-test
-    restart: unless-stopped
-    ports:
-      - "3012:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
+      NODE_ENV: test
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
-      DB_PASSWORD: test-password
-      DB_NAME: job_db
-      SECRET_KEY: test-secret-key
-      PORT: 3000
-      NODE_ENV: test
-    networks:
-      - app-network-test
+      DB_PASSWORD: postgres
+      DB_NAME: job_test_db
+      SECRET_KEY: TEST_SECRET
 
   application-service:
     build:
       context: ./application-service
-      dockerfile: Dockerfile
+      target: test
     container_name: application-service-test
-    restart: unless-stopped
-    ports:
-      - "3013:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     environment:
+      NODE_ENV: test
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
-      DB_PASSWORD: test-password
-      DB_NAME: application_db
-      SECRET_KEY: test-secret-key
-      PORT: 3000
+      DB_PASSWORD: postgres
+      DB_NAME: application_test_db
+      SECRET_KEY: TEST_SECRET
       JOB_SERVICE_HOST: job-service:3000
-      NODE_ENV: test
-    networks:
-      - app-network-test
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend-test
-    restart: unless-stopped
-    ports:
-      - "3010:3000"
-    depends_on:
-      - user-service
-      - job-service
-      - application-service
-    environment:
-      NEXT_PUBLIC_API_URL: http://user-service:3000
-      NEXT_PUBLIC_JOB_SERVICE_URL: http://job-service:3000
-      NEXT_PUBLIC_APP_SERVICE_URL: http://application-service:3000
-      NODE_ENV: test
-    networks:
-      - app-network-test
-
-volumes:
-  postgres_data_test:
-
-networks:
-  app-network-test:
